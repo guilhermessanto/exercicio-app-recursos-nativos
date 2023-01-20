@@ -7,14 +7,18 @@ import {
   StatusBar,
   TextInput,
   Pressable,
+  Image,
 } from "react-native";
 
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
+import * as ImagePicker from "expo-image-picker";
 
 export default function App() {
   const [texto, onChangeText] = useState("Titulo da foto/local");
   const [minhaLocalizacao, setMinhaLocalizacao] = useState(null);
+  const [status, requestPermission] = ImagePicker.useCameraPermissions();
+  const [foto, setFoto] = useState();
 
   useEffect(() => {
     async function obterLocalizacao() {
@@ -41,6 +45,24 @@ export default function App() {
       longitudeDelta: 0.0012,
     });
   };
+  useEffect(() => {
+    async function verPermissoes() {
+      const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
+      requestPermission(cameraStatus === "granted");
+    }
+
+    verPermissoes();
+  }, []);
+  const acessaCamera = async () => {
+    const imagem = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.5,
+    });
+
+    console.log(imagem);
+    setFoto(imagem.assets[0].uri);
+  };
 
   return (
     <View style={styles.container}>
@@ -53,13 +75,20 @@ export default function App() {
             onChangeText={onChangeText}
             value={texto}
           />
-          <View style={styles.viewMapa}></View>
-          <Pressable style={styles.botao}>
+          <View style={styles.view}>
+            {foto && (
+              <Image
+                source={{ uri: foto }}
+                style={{ width: 350, height: 200 }}
+              />
+            )}
+          </View>
+          <Pressable style={styles.botao} onPress={acessaCamera}>
             <Text style={styles.textoBotao}>Tirar foto</Text>
           </Pressable>
         </View>
         <View style={styles.caixa}>
-          <View style={styles.viewMapa}>
+          <View style={styles.view}>
             <MapView
               style={styles.map}
               region={localizacao ?? regiaoInicial}
@@ -99,7 +128,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
   },
-  viewMapa: {
+  view: {
     height: 200,
     width: 350,
     backgroundColor: "gray",
