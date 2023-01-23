@@ -79,7 +79,7 @@ export default function AddLocal() {
         nomeFoto: texto,
         caminhoFoto: foto,
       });
-      Alert.alert;
+      Alert.alert("Salvo com sucesso!!!");
     } catch (error) {
       console.log("Deu ruim na busca da API: " + error.message);
     }
