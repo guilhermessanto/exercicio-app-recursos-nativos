@@ -8,11 +8,13 @@ import {
   TextInput,
   Pressable,
   Image,
+  Alert,
 } from "react-native";
 
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
+import api from "../../servicos/api.js";
 
 export default function AddLocal() {
   const [texto, onChangeText] = useState("Titulo da foto/local");
@@ -27,8 +29,8 @@ export default function AddLocal() {
       const { status } = Location.requestForegroundPermissionsAsync();
 
       let localizacaoAtual = await Location.getCurrentPositionAsync({});
-      setMinhaLocalizacao(localizacaoAtual);
       setInterval(() => {
+        setMinhaLocalizacao(localizacaoAtual);
         setLoading(false);
       }, 1000);
     }
@@ -70,6 +72,19 @@ export default function AddLocal() {
     setFoto(imagem.assets[0].uri);
   };
 
+  const salvar = async () => {
+    try {
+      const resposta = await api.post("/locais.json", {
+        local: localizacao,
+        nomeFoto: texto,
+        caminhoFoto: foto,
+      });
+      Alert.alert;
+    } catch (error) {
+      console.log("Deu ruim na busca da API: " + error.message);
+    }
+  };
+  //console.log(foto);
   return (
     <View style={styles.container}>
       <SafeAreaView>
@@ -105,8 +120,13 @@ export default function AddLocal() {
               )}
             </MapView>
           </View>
-          <Pressable style={styles.botao} onPress={novaLocalizacao}>
-            <Text style={styles.textoBotao}>localizar no mapa</Text>
+          {minhaLocalizacao && (
+            <Pressable style={styles.botao} onPress={novaLocalizacao}>
+              <Text style={styles.textoBotao}>localizar no mapa</Text>
+            </Pressable>
+          )}
+          <Pressable style={styles.botao} onPress={salvar}>
+            <Text style={styles.textoBotao}>Salvar localização</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -148,7 +168,7 @@ const styles = StyleSheet.create({
   botao: {
     height: 40,
     width: 350,
-    marginVertical: 20,
+    marginVertical: 10,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 4,
