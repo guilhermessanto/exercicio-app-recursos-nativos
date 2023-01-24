@@ -15,6 +15,7 @@ import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
 import api from "../../servicos/api.js";
+import axios from "axios";
 
 export default function AddLocal() {
   const [texto, onChangeText] = useState("Titulo da foto/local");
@@ -45,7 +46,7 @@ export default function AddLocal() {
   };
 
   const [localizacao, setLocalizacao] = useState();
-  const novaLocalizacao = (event) => {
+  const novaLocalizacao = async (event) => {
     setLocalizacao({
       latitude: minhaLocalizacao.coords.latitude,
       longitude: minhaLocalizacao.coords.longitude,
@@ -71,13 +72,21 @@ export default function AddLocal() {
     console.log(imagem);
     setFoto(imagem.assets[0].uri);
   };
+  const endereco = async () => {};
 
   const salvar = async () => {
+    const link = await axios.get(
+      `https://nominatim.openstreetmap.org/reverse.php?lat=${localizacao.latitude}&lon=${localizacao.longitude}&zoom=18&format=jsonv2`
+    );
+    console.log(link.data.address.road);
     try {
       const resposta = await api.post("/locais.json", {
         local: localizacao,
         nomeFoto: texto,
         caminhoFoto: foto,
+        nomeRua: link.data.address.road,
+        numero: link.data.address.house_number,
+        estado: link.data.address.state,
       });
       Alert.alert("Salvo com sucesso!!!");
     } catch (error) {

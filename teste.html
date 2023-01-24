@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=], initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let lat = -23.5261815;
+      let long = -46.540112695539975;
+
+      fetch(
+        // `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${long}&$format=jsonv2`
+        `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${long}&zoom=18&format=jsonv2`
+      )
+        .then((resposta) => resposta.json())
+        .then((dados) => {
+          console.log(dados);
+          console.log(dados.address.road);
+        });
+      // .catch((error) => console.log(error));
+
+      //
+    </script>
+  </body>
+</html>
