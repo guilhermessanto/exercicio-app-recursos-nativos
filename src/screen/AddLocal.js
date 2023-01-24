@@ -72,7 +72,6 @@ export default function AddLocal() {
     console.log(imagem);
     setFoto(imagem.assets[0].uri);
   };
-  const endereco = async () => {};
 
   const salvar = async () => {
     const link = await axios.get(
