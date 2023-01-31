@@ -16,12 +16,16 @@ import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
 import api from "../../servicos/api.js";
 import axios from "axios";
+import storage from "@react-native-firebase/storage";
+
+//import firestore from "@react-native-firebase/firestore";
 
 export default function AddLocal() {
   const [texto, onChangeText] = useState("Titulo da foto/local");
   const [minhaLocalizacao, setMinhaLocalizacao] = useState(null);
   const [status, requestPermission] = ImagePicker.useCameraPermissions();
   const [foto, setFoto] = useState();
+  const [uploading, setUploading] = useState();
 
   const [loading, setLoading] = useState(true);
 
@@ -77,22 +81,33 @@ export default function AddLocal() {
     const link = await axios.get(
       `https://nominatim.openstreetmap.org/reverse.php?lat=${localizacao.latitude}&lon=${localizacao.longitude}&zoom=18&format=jsonv2`
     );
-    console.log(link.data.address.road);
+    //console.log(link.data.address.road);
+    let nomeArquivo = foto.substring(foto.lastIndexOf("/") + 1);
+    console.log(nomeArquivo);
+
+    const storageRef = storage().ref(`produtos/${nomeArquivo}`);
+
+    const task = storageRef.putFile(foto);
     try {
       const resposta = await api.post("/locais.json", {
         local: localizacao,
         nomeFoto: texto,
-        caminhoFoto: foto,
+        caminhoFoto: nomeArquivo,
         nomeRua: link.data.address.road,
         numero: link.data.address.house_number,
         estado: link.data.address.state,
       });
+      await task;
+      const url = await storageRef.getDownloadURL();
+      setUploading(false);
+
       Alert.alert("Salvo com sucesso!!!");
     } catch (error) {
       console.log("Deu ruim na busca da API: " + error.message);
     }
   };
-  //console.log(foto);
+  //console.log(foto.substring(foto.lastIndexOf("/") + 1));
+  // console.log(caminhoFoto);
   return (
     <View style={styles.container}>
       <SafeAreaView>
@@ -163,8 +178,8 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   view: {
-    height: 200,
-    width: 350,
+    height: 100,
+    width: 250,
     backgroundColor: "gray",
     justifyContent: "center",
     alignItems: "center",
