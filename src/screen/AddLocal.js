@@ -27,7 +27,7 @@ export default function AddLocal() {
   const [status, requestPermission] = ImagePicker.useCameraPermissions();
   const [foto, setFoto] = useState();
   const [uploading, setUploading] = useState();
-  const [urlFoto, setUrlFoto] = useState("");
+  const [urlFoto, setUrlFoto] = useState(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -79,6 +79,7 @@ export default function AddLocal() {
     console.log(imagem);
     setFoto(imagem.assets[0].uri);
   };
+  /* UPLOAD IMAGEM */
   const uploadingImage = async () => {
     setUploading(true);
     const response = await fetch(foto);
@@ -107,19 +108,21 @@ export default function AddLocal() {
       `https://nominatim.openstreetmap.org/reverse.php?lat=${localizacao.latitude}&lon=${localizacao.longitude}&zoom=18&format=jsonv2`
     );
     //console.log(link.data.address.road);
-    uploadingImage();
 
     //let nomeArquivo = foto.substring(foto.lastIndexOf("/") + 1);
 
     try {
-      const resposta = await api.post("/locais.json", {
-        local: localizacao,
-        nomeFoto: texto,
-        caminhoFoto: urlFoto,
-        nomeRua: link.data.address.road,
-        numero: link.data.address.house_number,
-        estado: link.data.address.state,
-      });
+      uploadingImage();
+      if (!urlFoto == null) {
+        const resposta = await api.post("/locais.json", {
+          local: localizacao,
+          nomeFoto: texto,
+          caminhoFoto: urlFoto,
+          nomeRua: link.data.address.road,
+          numero: link.data.address.house_number,
+          estado: link.data.address.state,
+        });
+      }
 
       Alert.alert("Salvo com sucesso!!!");
     } catch (error) {

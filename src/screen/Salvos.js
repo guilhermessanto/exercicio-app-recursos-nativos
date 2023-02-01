@@ -31,21 +31,24 @@ const Salvos = () => {
     capturarDados();
   }, []);
 
-  useEffect(() => {
-    async function objFoto() {
-      const resposta = await axios.get(
-        `https://firebasestorage.googleapis.com/v0/b/localizacao-9e104.appspot.com/o/produtos%${caminhoFoto}`
-      );
-      const dados = resposta.data;
-      console.log(dados.downloadTokens);
-    }
-    objFoto();
-  }, []);
-
   console.log(locais);
   return (
     <View>
-      <ScrollView showsVerticalScrollIndicator={false}></ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {locais.map((local) => (
+          <>
+            <Text>{local.rua}</Text>
+            <Text>{local.numero}</Text>
+            <Text>{local.estado}</Text>
+            <Text>{local.foto}</Text>
+
+            <Image
+              source={{ uri: local.caminhoFoto }}
+              style={{ width: 350, height: 200 }}
+            />
+          </>
+        ))}
+      </ScrollView>
     </View>
   );
 };
