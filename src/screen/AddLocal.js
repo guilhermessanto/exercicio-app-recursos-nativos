@@ -27,6 +27,7 @@ export default function AddLocal() {
   const [status, requestPermission] = ImagePicker.useCameraPermissions();
   const [foto, setFoto] = useState();
   const [uploading, setUploading] = useState();
+  const [urlFoto, setUrlFoto] = useState("");
 
   const [loading, setLoading] = useState(true);
 
@@ -83,10 +84,15 @@ export default function AddLocal() {
     const response = await fetch(foto);
     const blob = await response.blob();
     const filename = foto.substring(foto.lastIndexOf("/") + 1);
-    let ref = firebase.storage().ref("produtos/").child(filename).put(blob);
+    let upload = firebase.storage().ref("produtos/").child(filename).put(blob);
 
+    upload.on("state_changed", function () {
+      upload.snapshot.ref.getDownloadURL().then(function (url_imagem) {
+        setUrlFoto(url_imagem);
+      });
+    });
     try {
-      await ref;
+      await upload;
     } catch (error) {
       console.log(error);
     }
@@ -94,7 +100,7 @@ export default function AddLocal() {
     Alert.alert("photo Uploaded");
     setFoto(null);
   };
-
+  //console.log(urlFoto);
   /* Salvar */
   const salvar = async () => {
     const link = await axios.get(
@@ -103,13 +109,13 @@ export default function AddLocal() {
     //console.log(link.data.address.road);
     uploadingImage();
 
-    let nomeArquivo = foto.substring(foto.lastIndexOf("/") + 1);
+    //let nomeArquivo = foto.substring(foto.lastIndexOf("/") + 1);
 
     try {
       const resposta = await api.post("/locais.json", {
         local: localizacao,
         nomeFoto: texto,
-        caminhoFoto: nomeArquivo,
+        caminhoFoto: urlFoto,
         nomeRua: link.data.address.road,
         numero: link.data.address.house_number,
         estado: link.data.address.state,
