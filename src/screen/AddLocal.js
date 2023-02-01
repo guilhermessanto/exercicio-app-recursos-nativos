@@ -19,6 +19,7 @@ import axios from "axios";
 import storage from "@react-native-firebase/storage";
 
 //import firestore from "@react-native-firebase/firestore";
+import { firebase } from "../../firebaseConfig";
 
 export default function AddLocal() {
   const [texto, onChangeText] = useState("Titulo da foto/local");
@@ -68,6 +69,7 @@ export default function AddLocal() {
   }, []);
   const acessaCamera = async () => {
     const imagem = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.5,
@@ -76,18 +78,33 @@ export default function AddLocal() {
     console.log(imagem);
     setFoto(imagem.assets[0].uri);
   };
+  const uploadingImage = async () => {
+    setUploading(true);
+    const response = await fetch(foto);
+    const blob = await response.blob();
+    const filename = foto.substring(foto.lastIndexOf("/") + 1);
+    let ref = firebase.storage().ref("produtos/").child(filename).put(blob);
 
+    try {
+      await ref;
+    } catch (error) {
+      console.log(error);
+    }
+    setUploading(false);
+    Alert.alert("photo Uploaded");
+    setFoto(null);
+  };
+
+  /* Salvar */
   const salvar = async () => {
     const link = await axios.get(
       `https://nominatim.openstreetmap.org/reverse.php?lat=${localizacao.latitude}&lon=${localizacao.longitude}&zoom=18&format=jsonv2`
     );
     //console.log(link.data.address.road);
+    uploadingImage();
+
     let nomeArquivo = foto.substring(foto.lastIndexOf("/") + 1);
-    console.log(nomeArquivo);
 
-    const storageRef = storage().ref(`produtos/${nomeArquivo}`);
-
-    const task = storageRef.putFile(foto);
     try {
       const resposta = await api.post("/locais.json", {
         local: localizacao,
@@ -97,9 +114,6 @@ export default function AddLocal() {
         numero: link.data.address.house_number,
         estado: link.data.address.state,
       });
-      await task;
-      const url = await storageRef.getDownloadURL();
-      setUploading(false);
 
       Alert.alert("Salvo com sucesso!!!");
     } catch (error) {
